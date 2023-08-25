@@ -1,0 +1,78 @@
+*vimracer.txt*	Vim Racer game for vim	
+
+==============================================================================
+CONTENTS                                        *vimracer*   *vimracer-contents*
+
+    Installation................................: |vimracer-installation|
+    Usage.......................................: |vimracer--usage|
+    Settings....................................: |vimracer-settings|
+    Issues......................................: |vimracer-issues|
+
+
+==============================================================================
+INSTALLATION                                            *vimraer-installation*
+
+The easiest way to install the plugin is with a plugin manager:
+
+- vim-plug: https://github.com/junegunn/vim-plug
+- Vundle:   https://github.com/VundleVim/Vundle.vim
+
+If you use one, just follow the instructions in its documentation.
+
+You can install the plugin yourself using Vim's |packages| functionality by
+cloning the project (or adding it as a submodule) under
+`~/.vim/pack/<any-name>/start/`. For example:
+>
+    git clone https://github.com/n0tn1w/Vim-Racer ~/.vim/pack/_/start/vimracer
+<
+This should automatically load the plugin for you on Vim start. Alternatively,
+you can add it to `~/.vim/pack/<any-name>/opt/` instead and load it in your
+.vimrc manually with:
+>
+    packadd vimracer 
+<
+
+==============================================================================
+USAGE                               *vimracer-usage* *:VimRacerStart* *:VimRacerJoin* *:CFC*
+
+Two players connect via a sockets. They are given a promt which the server 
+player generates from a set ot possible options .Both players need to write it
+as fast as possible. The first player who is done wins.
+
+	1. |:VimRacerStart| the player which is asign a server role starts the game
+>
+	:VimRacerStart 
+<
+
+	2. |:VimRacerClient| the player which is asign a client role starts the game
+	
+	You can specify the ip if you want to play with your friend remotly
+
+>
+	:VimRacerClient ip 
+<
+	
+	without ip the client will scan local network for open games on ports 8100
+and 8200 
+
+>
+	:VimRacerClient
+<
+	
+	3. |:CFC| (Check file content) is a function that a player calls when 
+he is done with the given task. This will send a signal to the other player 
+that the game is over.  
+
+==============================================================================
+SETTINGS       *vimracer-settings*
+
+Soon will be added more options for the players
+
+===============================================================================
+ISSUES                                                        *vimracer-issues*
+
+Any issues and suggestions are very welcome on https://github.com/n0tn1w/Vim-Racer/issues 
+
+
+
+vim:tw=78:sw=4:ft=help:norl: 
