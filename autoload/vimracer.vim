@@ -1,5 +1,5 @@
 " Start as client
-function! vr#Join()
+function! vimracer#Join()
 
 	if g:game_state == 1
 		return
@@ -9,12 +9,14 @@ function! vr#Join()
 	g:game_state = 1;
 
 	let command = "../communication/client"
-	g:clientJobId =  job_start(l:command, { 'out_cb': function('HandleCommunication'), 'err_cb': function('HandleCommunication')})
+	g:clientJobId =  job_start(l:command, { 'out_cb': function('HandleCommunicationClient'), 'err_cb': function('HandleCommunication')})
+
+	call SendMessage('open:')
 
 endfunction
 
 " Start as server
-function! vr#Start()
+function! vimracer#Start()
 
 	if g:game_state == 1
 		return
@@ -24,72 +26,111 @@ function! vr#Start()
 	g:game_state = 1;
 
 	let command = "../communication/server"
-	g:serverJobId =  job_start(l:command, { 'out_cb': function('HandleCommunication'), 'err_cb': function('HandleCommunication')})
+	g:serverJobId =  job_start(l:command, { 'out_cb': function('HandleCommunicationServer'), 'err_cb': function('HandleCommunication')})
 
 endfunction
 
-
-" Have the task to process the data that is sent from the server
-function! s:HandleCommunication(job, line)
+" Have the task to process the data that received from the server
+function! s:HandleCommunicationServer(job, line)
 
 	if g:game_state == 0 
 		return
 	endif
-`
-	if CheckForContentMessage()	
-		g:game_content = strpart(a:line, 5)
+
+	if CheckForStartMessage(l:line)	
+
+		call GetRandomLine()
+		g:game_content = call ExtractStartingMessageFromFile(g:game_data)
+		g:game_solution = call ExtractStartingMessageFromFile(g:game_solution)
+
+		call SendMessage(g:game_content)
+		call SendMessage(g:game_solution)
+
 		call OpenGameBuffer()	
 	endif
 	
-	if CheckForEndMessage()	
+	if CheckForEndMessage(l:line)	
+
 		g:game_state = 0
 		echomsg 'You lost'
+
 		call CloseGameBuffer()	
 	endif
 
 endfunction
 
-" Open the buffer that is designed for the text
+" Have the task to process the data that received from the client
+function! s:HandleCommunicationClient(job, line)
+	"TO DO
+endfunction
+
+" Get random line from file 
+function! s:GetRandomGameLine() 
+
+	let num_lines = len(g:game_line)
+	g:line = rand(num_lines);
+
+endfuncti
+
+" Get a line from file 
+function! s:ExtractStartingMessageFromFile(file)
+
+	let lines = readfile(a:file)
+	let line = lines[g:game_line]
+	
+	return line
+
+endfunction
+
+" Send message
+" Currently doesnt flush until the job is close
+function! s:SendMessage(message)
+
+	if g:type == 'server'
+
+		call ch_sendraw(g:serverJob, a:message . "\n")
+	else if g:type == 'client'
+
+		call ch_sendraw(g:clientJob, a:message . "\n")
+	endif
+
+endfunction
+
+" Open g:game_buff
 function! s:OpenGameBuffer()
 
 	execute 'new ' . g:game_buff_name
-	call append(0, g:content)
+	call append(0, g:game_content)
         
 	setlocal nomodifiable
         wincmd p
 
 endfunction
 
-" Closes the buffer that is designed for the text
+" Closes g:game_buff 
 function! s:CloseGameBuffer()
 	
 	execute 'bd! ' . g:game_buff_name
 
 endfunction
 
-" Check if the message contains a command
-function! s:CheckForContentMessage(line)
+" Check if the message is start message 
+function! s:CheckForStartMessage(line)
 
     	return strpart(a:line, 0, 5) == "open:"
 
 endfunction
 
-" Disables visual and visual block mode so that the player cannot copy paste
-function! vr#DisableVisualAndVBlockMode()
+" Check if the message is end message 
+function! s:CheckForEndMessage(line)
 
-	if g:game_state == 0 
-		return
-	endif
-	
-	if expand('%') == g:game_buff_name
-		map <buffer> v <Nop>
-		map <buffer> <C-v> <Nop>	
-	endif
+    	return strpart(a:line, 0, 5) == "close"
 
 endfunction
 
-" Check if the buffer cotent matches 
-function! vr#CheckBufferContent()
+" Check if the buffer content matches to the final answer 
+" CFC command
+function! vimracer#CheckBufferContent()
 	
 	let lines = getline(1, '$')
         let cnt = len(l:lines)
@@ -100,30 +141,32 @@ function! vr#CheckBufferContent()
 		return
         endif
 
-        if l:lines[0] == g:game_content 
+        if l:lines[0] == g:game_solution 
         
 		echomsg 'You won'
 	
 		g:game_state = 0
-		call SendSignalForGameOver()
+		call SendMessage('close')
 		call CloseGameBuffer()		
         else 
         
-		echomsg 'Your text is not corret'
-        
+		echomsg 'Your text is not corret'        
 	endif
 
 endfunction
 
-" Send signal for game over
-function! s:SendSignalForGameOver()
+" Disables visual and visual block mode so that the player cannot copy paste
+function! vimracer#DisableVisualAndVBlockMode()
 
-	if g:type == 'server'
-		call ch_sendraw(g:serverJob, a:input . "\n")
-	else if g:type == 'client'
-		call ch_sendraw(g:clientJob, a:input . "\n")
+	if g:game_state == 0 
+
+		return
+	endif
+	
+	if expand('%') == g:game_buff_name
+
+		map <buffer> v <Nop>
+		map <buffer> <C-v> <Nop>	
 	endif
 
 endfunction
-
-

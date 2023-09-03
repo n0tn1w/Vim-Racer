@@ -1,0 +1,5 @@
+I like simplicity : Nneba Fjnegm naq Wbua Tehore
+function testFunction (foo, bar) { }
+[11, 2, 3,5  , 1,1, 22, 4]
+a_golf_ball - > - > - > - > |___________| -
+|/-/-/-/|

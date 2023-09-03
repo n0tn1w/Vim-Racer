@@ -1,0 +1,5 @@
+I like simplicity : Aaron Swartz and John Gruber
+function testFunction (bar, foo) { }
+[1, 2, 3, 4, 5, 11, 22]
+- > - > - > - > |a_golf_ball| -
+|\/-\/-\/-\/|
